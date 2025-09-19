@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  status       String   @default("ACTIVE") // เดิม enum ClientStatus
+  ipWhitelist  String?  // JSON string หรือ CSV
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  apiKeys      ApiKey[]
+}
+
+model ApiKey {
+  id              String   @id @default(cuid())   // key_id (public part)
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  prefix          String
+  secretHash      String
+  secretEncrypted Bytes    // AES-GCM: nonce(12) + ciphertext + tag
+  scopes          String   @default("[]")         // เก็บเป็น JSON string แทน Json
+  status          String   @default("ACTIVE")     // เดิม enum KeyStatus
+  expiresAt       DateTime?
+  lastUsedAt      DateTime?
+  rateLimitPerMin Int      @default(60)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status, expiresAt])
+}
+
+model RedeemJob {
+  id             String   @id @default(cuid())
+  clientId       String
+  apiKeyId       String
+  phone          String
+  giftUrlHash    String
+  status         String   @default("CREATED")     // เดิม enum RedeemStatus
+  amount         Float?
+  currency       String?  @default("THB")
+  issuer         String?
+  failCode       String?
+  failReason     String?
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([clientId, apiKeyId])
+  @@index([status])
+  @@index([giftUrlHash])
+  @@unique([clientId, idempotencyKey])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  targetId  String?
+  meta      String?  // เก็บ JSON เป็นสตริงแทน Json?
+  createdAt DateTime @default(now())
+}
