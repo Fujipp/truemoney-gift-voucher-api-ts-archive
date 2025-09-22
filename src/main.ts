@@ -7,9 +7,9 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(helmet());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
-  await app.listen(process.env.PORT || 3000);
-  console.log('HTTP listening on :3000');
+  const port = parseInt(process.env.PORT ?? '3000', 10);
+  await app.listen(port, '0.0.0.0');
+  console.log(`HTTP listening on :${port}`);
 }
 bootstrap();
+
