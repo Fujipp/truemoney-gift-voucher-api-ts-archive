@@ -2,7 +2,9 @@
   "name": "api-tmnwl",
   "version": "1.0.0",
   "scripts": {
+    "build": "nest build",
     "start": "nest start",
+    "postinstall": "prisma generate",
     "start:dev": "nest start --watch",
     "cli": "ts-node src/keys/cli/keys.module.cli.ts",
     "prisma:dev": "prisma migrate dev && prisma generate",
